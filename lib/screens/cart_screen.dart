@@ -17,7 +17,7 @@ class CartScreen extends StatelessWidget {
         title: Text('Your Cart'),
       ),
       body: Column(
-        children: <Widget>[
+        children: [
           Expanded(
             child: ListView.builder(
               itemCount: cartItems.length,
@@ -43,7 +43,7 @@ class CartScreen extends StatelessWidget {
 class CartItemTile extends StatelessWidget {
   final CartItem cartItem;
 
-  CartItemTile({required this.cartItem});
+  const CartItemTile({super.key, required this.cartItem});
 
   @override
   Widget build(BuildContext context) {

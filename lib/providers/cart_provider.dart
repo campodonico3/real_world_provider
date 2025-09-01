@@ -4,7 +4,7 @@ import '../models/cart_model.dart';
 import '../models/product_model.dart';
 
 class CartProvider with ChangeNotifier {
-  Map<String, CartItem> _items = {};
+  final Map<String, CartItem> _items = {};
 
   Map<String, CartItem> get items => _items;
 
@@ -30,10 +30,8 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  double get totalPrice {
-    return _items.values.fold(
+  double get totalPrice => _items.values.fold(
       0.0,
       (sum, cartItem) => sum + cartItem.product.price * cartItem.quantity,
     );
-  }
 }

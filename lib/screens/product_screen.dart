@@ -19,6 +19,7 @@ class ProductScreen extends StatelessWidget {
         actions: [
           Consumer<CartProvider>(
             builder: (context, cart, child) {
+              //print('Cart has ${cart.items} items');
               return Badge(
                 label: Text(cart.items.length.toString()),
                 child: IconButton(
@@ -46,10 +47,11 @@ class ProductScreen extends StatelessWidget {
 class ProductTile extends StatelessWidget {
   final Product product;
 
-  ProductTile({required this.product});
+  const ProductTile({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
+    // (pero con listen: false, para que este widget no se reconstruya cada vez que cambia el carrito).
     var cartProvider = Provider.of<CartProvider>(context, listen: false);
 
     return ListTile(
@@ -58,6 +60,7 @@ class ProductTile extends StatelessWidget {
       trailing: IconButton(
         icon: Icon(Icons.add_shopping_cart),
         onPressed: () {
+          // AGREGAR EL PRODUCTO SELECCIONADO AL CARRITO Y SE ACTUALIZARÁ EL BADGE
           cartProvider.addToCart(product);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${product.name} added to cart!')),
