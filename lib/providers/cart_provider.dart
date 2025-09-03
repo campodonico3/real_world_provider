@@ -30,8 +30,16 @@ class CartProvider with ChangeNotifier {
     }
   }
 
+  // Función para vaciar el carrito por completo
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
+  }
+
   double get totalPrice => _items.values.fold(
       0.0,
       (sum, cartItem) => sum + cartItem.product.price * cartItem.quantity,
     );
+
+  bool get noVacia => _items.isNotEmpty;
 }

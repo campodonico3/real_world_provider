@@ -15,6 +15,18 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Cart'),
+        // Agregamos el botón de vaciar el carrito
+        actions: [
+          // MOSTRAMOS EL BTN SOLO SI HAY ITEMS EN EL CARRITO
+          if(cartProvider.noVacia)
+            IconButton(
+              onPressed: () {
+                cartProvider.clearCart();
+              } ,
+              tooltip: 'Clear all',
+              icon: Icon(Icons.clear_all_outlined),
+            ),
+        ],
       ),
       body: Column(
         children: [
