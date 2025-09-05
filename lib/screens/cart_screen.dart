@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:real_world_provider/providers/discount_provider.dart';
 
 import '../models/cart_model.dart';
 import '../providers/cart_provider.dart';
+import '../widgets/discount_widget.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -18,11 +20,11 @@ class CartScreen extends StatelessWidget {
         // Agregamos el botón de vaciar el carrito
         actions: [
           // MOSTRAMOS EL BTN SOLO SI HAY ITEMS EN EL CARRITO
-          if(cartProvider.noVacia)
+          if (cartProvider.noVacia)
             IconButton(
               onPressed: () {
                 cartProvider.clearCart();
-              } ,
+              },
               tooltip: 'Clear all',
               icon: Icon(Icons.clear_all_outlined),
             ),
@@ -39,15 +41,42 @@ class CartScreen extends StatelessWidget {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Total: \$${cartProvider.totalPrice.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
+          DiscountWidget(),
+
+          _cartSummary(context),
         ],
       ),
+    );
+  }
+
+  Widget _cartSummary(BuildContext context) {
+    return Consumer2<CartProvider, DiscountProvider>(
+      builder: (context, cartProvider, discountProvider, child) {
+        final subTotal = cartProvider.totalPrice;
+        final discount = discountProvider.calculateDiscountAmount(subTotal);
+        final total = discountProvider.calculateFinalTotal(subTotal);
+
+        return Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                'Subtotal: \$${subTotal.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 16),
+              ),
+              if (discountProvider.hasDiscount)
+                Text(
+                  'Discount: -\$${discount.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 16, color: Colors.red[700]),
+                ),
+              Divider(),
+              Text('Total: \$${total.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,
+                ),)
+            ],
+          ),
+        );
+      },
     );
   }
 }

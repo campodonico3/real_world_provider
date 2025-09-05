@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_world_provider/providers/cart_provider.dart';
+import 'package:real_world_provider/providers/discount_provider.dart';
 import 'package:real_world_provider/providers/product_provider.dart';
 import 'package:real_world_provider/screens/cart_screen.dart';
 import 'package:real_world_provider/screens/product_screen.dart';
@@ -11,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (context) => ProductProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => DiscountProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -20,5 +22,5 @@ void main() {
         },
       ),
     ),
-  );  
+  );
 }

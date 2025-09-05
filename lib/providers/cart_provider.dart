@@ -36,10 +36,15 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  double get totalPrice => _items.values.fold(
+  double get subtotal  => _items.values.fold(
       0.0,
       (sum, cartItem) => sum + cartItem.product.price * cartItem.quantity,
     );
+
+  double get totalPrice => subtotal;
+  bool get isEmpty => _items.isEmpty;
+  int get itemCount => _items.length;
+
 
   bool get noVacia => _items.isNotEmpty;
 }
