@@ -52,6 +52,9 @@ class CartScreen extends StatelessWidget {
   Widget _cartSummary(BuildContext context) {
     return Consumer2<CartProvider, DiscountProvider>(
       builder: (context, cartProvider, discountProvider, child) {
+        // 🔍 LOG CADA VEZ QUE SE RECONSTRUYE
+        debugPrint('🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime.now().millisecondsSinceEpoch}');
+
         final subTotal = cartProvider.totalPrice;
         final discount = discountProvider.calculateDiscountAmount(subTotal);
         final total = discountProvider.calculateFinalTotal(subTotal);
