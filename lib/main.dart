@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_world_provider/providers/cart_provider.dart';
@@ -33,6 +31,14 @@ void main() {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'Unbounded',
+          textTheme: const TextTheme(
+            bodyLarge: TextStyle(fontWeight: FontWeight.w400), // Regular
+            bodyMedium: TextStyle(fontWeight: FontWeight.w500), // Medium
+            titleLarge: TextStyle(fontWeight: FontWeight.w700), // Bold
+          ),
+        ),
         routes: {
           '/': (context) => ProductScreen(),
           '/cart': (context) => CartScreen(),
