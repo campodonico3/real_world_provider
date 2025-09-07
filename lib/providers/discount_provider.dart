@@ -3,9 +3,26 @@ import 'package:flutter/foundation.dart';
 import '../models/discount_model.dart';
 import 'dart:developer' as developer;
 
+import 'cart_provider.dart';
+
 enum DiscountStatus { none, loading, applied, invalid, expired, belowMinimum }
 
 class DiscountProvider with ChangeNotifier {
+  // Referenciamos a CartProvider para escuchar cambios autoamticamente
+  final CartProvider? _cartProvider;
+
+  // Constructor que recibe CartProvider
+  DiscountProvider (this._cartProvider){
+    // Escuchar cambios en el carrito automaticamente
+    _cartProvider?.addListener(_onCartChanged);
+  }
+
+  @override
+  void dispose() {
+    _cartProvider?.addListener(_onCartChanged);
+    super.dispose();
+  }
+
   // Base de datos simulada de códigos de descuento
   final List<DiscountCode> _availableCodes = [
     DiscountCode(
@@ -27,8 +44,7 @@ class DiscountProvider with ChangeNotifier {
   ];
 
   // Estado del descuento
-  AppliedDiscount?
-  _appliedDiscount; // Guarda el descuento aplicado (o null si no hay ninguno)
+  AppliedDiscount? _appliedDiscount; // Guarda el descuento aplicado (o null si no hay ninguno)
   DiscountStatus _status = DiscountStatus.none; // Guarda el estado de descuento
   String _errorMessage = ''; // Texto de error
   String _warningMessage = '';
@@ -53,51 +69,49 @@ class DiscountProvider with ChangeNotifier {
   //   return originalTotal * (_appliedDiscount!.discountCode.percentage / 100);
   // }
 
-  // 🆕
+  // 🆕 Método Automático: Se ejecuta cuando cambia el carrito (Con ChangeNotifierProxyProvider)
+  void _onCartChanged() {
+    if (!hasDiscount && _cartProvider == null) {
+      return;
+    }
+
+    debugPrint('🔄 [DiscountProvider] CartChanged - Recalculating discount...');
+
+    final currentTotal = _cartProvider!.subtotal;
+    final discountCode = _appliedDiscount!.discountCode;
+
+    // Validación automática del monto mínimo
+    if (currentTotal < discountCode.minAmount) {
+      if (_status != DiscountStatus.belowMinimum) {
+        _status = DiscountStatus.belowMinimum;
+        _warningMessage = 'Add \$${(discountCode.minAmount - currentTotal).toStringAsFixed(2)} more to use this discount';
+        debugPrint('[DiscountProvider] Auto-suspended: below minimum amount');
+        // No llamamos notifyListeners() aquí porque ya se notificará automaticamente
+      }
+    } else {
+      if (_status != DiscountStatus.applied) {
+        _status = DiscountStatus.applied;
+        _warningMessage = '';
+        debugPrint('[DiscountProvider] Auto-reactivated discount');
+      }
+    }
+
+  }
+
+  // Calcular descuento (sin validaciones dinámicas, ya las meneja _onCartChanged)
   double calculateDiscountAmount(double originalTotal) {
     if (!hasDiscount) {
-      debugPrint('No tiene descuento ');
       return 0.0;
     }
 
     final discountCode = _appliedDiscount!.discountCode;
 
-    // Validación Dinámica: Verificar si aún cumple con minAmount
-    if (originalTotal < discountCode.minAmount) {
-      // Actualizamos estado a "below minimum" pero NO eliminamos el cupón
-      if (_status != DiscountStatus.belowMinimum) {
-        _status = DiscountStatus.belowMinimum;
-        _warningMessage =
-            "Add \$${(discountCode.minAmount - originalTotal).toStringAsFixed(2)} more to use this discount";
-        debugPrint(
-          '[DiscountProvider] Discount suspended: below minimum amount',
-        );
-
-        // Notificar el cambio de estado
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
-      }
+    // Si está suspendido, no aplicar descuento
+    if (_status == DiscountStatus.belowMinimum) {
       return 0.0;
     }
 
-    // Descuento Válido: Calcular dinamicamente
-    if (_status != DiscountStatus.applied) {
-      _status = DiscountStatus.applied;
-      _warningMessage = '';
-      debugPrint('[DiscountProvider] - Discount reactivated');
-
-      // Notificar el cambio de estado
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    }
-
-    final calculatedDiscount = originalTotal * (discountCode.percentage / 100);
-    debugPrint(
-      '[New] Discount calculated: \$${calculatedDiscount.toStringAsFixed(2)}',
-    );
-    return calculatedDiscount;
+    return originalTotal * (discountCode.percentage / 100);
   }
 
   // Calcular el total final con el descuento aplicado
@@ -106,7 +120,14 @@ class DiscountProvider with ChangeNotifier {
   }
 
   // Aplicar el código de descuento
-  Future<void> applyDiscountCode(String code, double cartTotal) async {
+  Future<void> applyDiscountCode(String code) async {
+    if (_cartProvider == null) {
+      debugPrint('[DiscountProvider] CartProvider is null');
+      return;
+    }
+
+    final cartTotal = _cartProvider.subtotal;
+
     // Evitar aplicaciones múltiples
     if (_status == DiscountStatus.loading) {
       debugPrint('[DiscountProvider] Already processing a discount code');

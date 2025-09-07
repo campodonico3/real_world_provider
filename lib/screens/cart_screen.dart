@@ -16,7 +16,7 @@ class CartScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Cart'),
+        title: Text('My Cart'),
         // Agregamos el botón de vaciar el carrito
         actions: [
           // MOSTRAMOS EL BTN SOLO SI HAY ITEMS EN EL CARRITO
@@ -50,34 +50,59 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _cartSummary(BuildContext context) {
-    return Consumer2<CartProvider, DiscountProvider>(
-      builder: (context, cartProvider, discountProvider, child) {
-        // 🔍 LOG CADA VEZ QUE SE RECONSTRUYE
-        debugPrint('🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime.now().millisecondsSinceEpoch}');
+    // 🔍 LOG CADA VEZ QUE SE RECONSTRUYE
+    debugPrint(
+      '🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime.now().millisecondsSinceEpoch}',
+    );
 
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
         final subTotal = cartProvider.totalPrice;
-        final discount = discountProvider.calculateDiscountAmount(subTotal);
-        final total = discountProvider.calculateFinalTotal(subTotal);
 
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(
-                'Subtotal: \$${subTotal.toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 16),
+        return Consumer<DiscountProvider>(
+          builder: (context, discountProvider, child) {
+            final discount = discountProvider.calculateDiscountAmount(subTotal);
+            final total = discountProvider.calculateFinalTotal(subTotal);
+
+            return Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    'Subtotal: \$${subTotal.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  if (discountProvider.hasDiscount) ...[
+                    Text(
+                      'Discount: -\$${discount.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 16, color: Colors.red[700]),
+                    ),
+                    // Mostramos advertencia si el descuento está suspendido
+                    if (discountProvider.status == DiscountStatus.belowMinimum)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          discountProvider.warningMessage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange[700],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                  ],
+                  Divider(),
+                  Text(
+                    'Total: \$${total.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              if (discountProvider.hasDiscount)
-                Text(
-                  'Discount: -\$${discount.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 16, color: Colors.red[700]),
-                ),
-              Divider(),
-              Text('Total: \$${total.toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,
-                ),)
-            ],
-          ),
+            );
+          },
         );
       },
     );

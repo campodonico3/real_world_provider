@@ -22,8 +22,8 @@ class _DiscountWidgetState extends State<DiscountWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<DiscountProvider, CartProvider>(
-      builder: (context, discountProvider, cartProvider, child) {
+    return Consumer<DiscountProvider>(
+      builder: (context, discountProvider, child) {
         return Card(
           margin: EdgeInsets.all(16),
           child: Padding(
@@ -61,7 +61,7 @@ class _DiscountWidgetState extends State<DiscountWidget> {
                         onPressed:
                             discountProvider.status == DiscountStatus.loading
                             ? null
-                            : () => _applyDiscount(context, discountProvider, cartProvider),
+                            : () => _applyDiscount(context, discountProvider),
                         child: discountProvider.status == DiscountStatus.loading
                             ? SizedBox(
                                 width: 16,
@@ -154,11 +154,11 @@ class _DiscountWidgetState extends State<DiscountWidget> {
     );
   }
 
-  void _applyDiscount(BuildContext context, DiscountProvider discountProvider, CartProvider cartProvider) {
+  void _applyDiscount(BuildContext context, DiscountProvider discountProvider) {
     final code = _codeController.text.trim();
     print('[Discount Widget] - Code: ${code}');
     if (code.isNotEmpty) {
-      discountProvider.applyDiscountCode(code, cartProvider.subtotal);
+      discountProvider.applyDiscountCode(code);
     }
   }
 }
