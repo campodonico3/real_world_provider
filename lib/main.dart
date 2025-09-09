@@ -4,7 +4,10 @@ import 'package:real_world_provider/providers/cart_provider.dart';
 import 'package:real_world_provider/providers/discount_provider.dart';
 import 'package:real_world_provider/providers/product_provider.dart';
 import 'package:real_world_provider/screens/cart_screen.dart';
+import 'package:real_world_provider/screens/product_details_screen.dart';
 import 'package:real_world_provider/screens/product_screen.dart';
+
+import 'core/theme/app_colors.dart';
 
 void main() {
   runApp(
@@ -38,6 +41,23 @@ void main() {
             bodyMedium: TextStyle(fontWeight: FontWeight.w500), // Medium
             titleLarge: TextStyle(fontWeight: FontWeight.w700), // Bold
           ),
+          useMaterial3: true,
+          extensions: <ThemeExtension<dynamic>>[
+            const AppColors(
+              background: Colors.white,
+              onBackground: kDark,
+              surface: Colors.white,
+              onSurface: kDark,
+              secondarySurface: kPink,
+              onSecondarySurface: Colors.white,
+              regularSurface: kYellowLight,
+              onRegularSurface: kDark,
+              actionSurface: kPeach,
+              onActionSurface: kPink,
+              highlightSurface: kGreen,
+              onHighlightSurface: Colors.white,
+            ),
+          ],
         ),
         routes: {
           '/': (context) => ProductScreen(),

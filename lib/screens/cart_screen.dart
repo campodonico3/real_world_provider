@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_world_provider/providers/discount_provider.dart';
@@ -16,7 +17,7 @@ class CartScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Cart'),
+        title: Text('My Cart', style: TextStyle(color: Color(0xFF3D405B))),
         // Agregamos el botón de vaciar el carrito
         actions: [
           // MOSTRAMOS EL BTN SOLO SI HAY ITEMS EN EL CARRITO
@@ -26,7 +27,7 @@ class CartScreen extends StatelessWidget {
                 cartProvider.clearCart();
               },
               tooltip: 'Clear all',
-              icon: Icon(Icons.clear_all_outlined),
+              icon: Icon(Icons.clear_all_outlined, color: Color(0xFFF28482)),
             ),
         ],
       ),
@@ -52,7 +53,9 @@ class CartScreen extends StatelessWidget {
   Widget _cartSummary(BuildContext context) {
     // 🔍 LOG CADA VEZ QUE SE RECONSTRUYE
     debugPrint(
-      '🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime.now().millisecondsSinceEpoch}',
+      '🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime
+          .now()
+          .millisecondsSinceEpoch}',
     );
 
     return Consumer<CartProvider>(
@@ -94,10 +97,7 @@ class CartScreen extends StatelessWidget {
                   Divider(),
                   Text(
                     'Total: \$${total.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -118,16 +118,68 @@ class CartItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var cartProvider = Provider.of<CartProvider>(context, listen: false);
 
-    return ListTile(
-      title: Text(cartItem.product.name),
-      subtitle: Text(
-        '${cartItem.quantity} x \$${cartItem.product.price.toStringAsFixed(2)}',
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x66F2CC8F),
+            blurRadius: 32,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      trailing: IconButton(
-        icon: Icon(Icons.delete),
-        onPressed: () {
-          cartProvider.removeFromCart(cartItem.product.id);
-        },
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.transparent,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(cartItem.product.imageUrl!, fit: BoxFit.cover),
+            ),
+          ),
+          SizedBox(width: 16),
+
+          // Información del producto
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cartItem.product.name,
+                  style: TextStyle(
+                    color: Color(0xFF3D405B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '${cartItem.quantity} x \$${cartItem.product.price
+                      .toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                    color: Color(0xFFF28482),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              cartProvider.removeFromCart(cartItem.product.id);
+            },
+            icon: Icon(Icons.delete_rounded, color: Color(0xFF3D405B),),
+          ),
+        ],
       ),
     );
   }
