@@ -4,6 +4,7 @@ import 'package:real_world_provider/providers/cart_provider.dart';
 import 'package:real_world_provider/providers/discount_provider.dart';
 import 'package:real_world_provider/providers/product_provider.dart';
 import 'package:real_world_provider/screens/cart_screen.dart';
+import 'package:real_world_provider/screens/home_screen.dart';
 import 'package:real_world_provider/screens/product_details_screen.dart';
 import 'package:real_world_provider/screens/product_screen.dart';
 
@@ -60,7 +61,7 @@ void main() {
           ],
         ),
         routes: {
-          '/': (context) => ProductScreen(),
+          '/': (context) => HomeScreen(),
           '/cart': (context) => CartScreen(),
         },
       ),

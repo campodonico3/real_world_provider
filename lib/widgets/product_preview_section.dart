@@ -12,7 +12,10 @@ class ProductPreviewSection extends StatelessWidget {
       child: Stack(
         children: [
           _ProductBackground(),
-          SafeArea(child: _Content()),
+          SafeArea(child: Padding(
+            padding: const EdgeInsets.only(top: 24),
+            child: _Content(),
+          )),
         ],
       ),
     );
@@ -26,7 +29,9 @@ class _ProductBackground extends StatelessWidget {
   Widget build(BuildContext context, ) {
     final colors = Theme.of(context).extension<AppColors>()!;
     return Container(
+      margin: EdgeInsets.only(bottom: 24),
       width: double.infinity,
+      height: 364,
       decoration: BoxDecoration(
         color: colors.secondarySurface,
         borderRadius: const BorderRadius.only(
@@ -64,7 +69,7 @@ class _Content extends StatelessWidget {
                     width: 200,
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(16),
+                      shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.fastfood,

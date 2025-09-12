@@ -50,6 +50,9 @@ class _DiscountWidgetState extends State<DiscountWidget> {
                                 discountProvider.status == DiscountStatus.invalid || discountProvider.status == DiscountStatus.expired
                                 ? discountProvider.errorMessage
                                 : null,
+                            errorStyle: TextStyle(
+                              fontSize: 10,
+                            )
                           ),
                           textCapitalization: TextCapitalization.characters,
                           enabled:
@@ -105,7 +108,7 @@ class _DiscountWidgetState extends State<DiscountWidget> {
                                     .appliedDiscount!
                                     .discountCode
                                     .description,
-                                style: TextStyle(color: Colors.green[700]),
+                                style: TextStyle(color: Colors.green[700],),
                               ),
                             ],
                           ),

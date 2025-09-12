@@ -31,21 +31,62 @@ class CartScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                CartItem cartItem = cartItems[index];
-                return CartItemTile(cartItem: cartItem);
-              },
-            ),
-          ),
-          DiscountWidget(),
+      body: cartProvider.isEmpty
+          ? _buildEmptyCart(context)
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      CartItem cartItem = cartItems[index];
+                      return CartItemTile(cartItem: cartItem);
+                    },
+                  ),
+                ),
+                DiscountWidget(),
 
-          _cartSummary(context),
-        ],
+                _cartSummary(context),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildEmptyCart(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey[400]),
+            SizedBox(height: 16),
+            Text(
+              'Your cart is empty',
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF3D405B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Add some delicious items to get started!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFF28482),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text('Continue Shopping'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -53,9 +94,7 @@ class CartScreen extends StatelessWidget {
   Widget _cartSummary(BuildContext context) {
     // 🔍 LOG CADA VEZ QUE SE RECONSTRUYE
     debugPrint(
-      '🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime
-          .now()
-          .millisecondsSinceEpoch}',
+      '🏗️ [CartSummary] BUILD ejecutado - Time: ${DateTime.now().millisecondsSinceEpoch}',
     );
 
     return Consumer<CartProvider>(
@@ -123,7 +162,7 @@ class CartItemTile extends StatelessWidget {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
             color: Color(0x66F2CC8F),
@@ -156,16 +195,16 @@ class CartItemTile extends StatelessWidget {
                 Text(
                   cartItem.product.name,
                   style: TextStyle(
+                    fontSize: 13,
                     color: Color(0xFF3D405B),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '${cartItem.quantity} x \$${cartItem.product.price
-                      .toStringAsFixed(2)}',
+                  '${cartItem.quantity} x \$${cartItem.product.price.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.w300,
                     color: Color(0xFFF28482),
                   ),
@@ -173,13 +212,118 @@ class CartItemTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {
-              cartProvider.removeFromCart(cartItem.product.id);
-            },
-            icon: Icon(Icons.delete_rounded, color: Color(0xFF3D405B),),
+          // Controles de cantidad
+          Column(
+            children: [
+              // Botones de cantidad
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Botón decrementar
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFF7EDE2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: _QuantityButton(
+                        icon: Icons.remove,
+                        onPressed: () {
+                          cartProvider.decrementQuantity(cartItem.product.id);
+                        },
+                        backgroundColor: Colors.transparent,
+                        iconColor: Color(0xFFF28482),
+                      ),
+                    ),
+
+                    // Cantidad
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        '${cartItem.quantity}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF3D405B),
+                        ),
+                      ),
+                    ),
+
+                    // Botón incrementar
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFF28482),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: _QuantityButton(
+                        icon: Icons.add,
+                        onPressed: () {
+                          cartProvider.incrementQuantity(cartItem.product.id);
+                        },
+                        backgroundColor: Colors.transparent,
+                        iconColor: Color(0xFFFFFFFF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 8),
+
+              // Botón eliminar
+              // _QuantityButton(
+              //   icon: Icons.delete_rounded,
+              //   onPressed: () {
+              //
+              //   },
+              //   backgroundColor: Color(0xFFF28482).withOpacity(0.1),
+              //   iconColor: Color(0xFFF28482),
+              // ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color backgroundColor;
+  final Color iconColor;
+
+  const _QuantityButton({
+    required this.icon,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Icon(
+            icon,
+            size: 18,
+            color: iconColor,
+          ),
+        ),
       ),
     );
   }
