@@ -3,11 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:real_world_provider/providers/cart_provider.dart';
 import 'package:real_world_provider/providers/discount_provider.dart';
 import 'package:real_world_provider/providers/product_provider.dart';
-import 'package:real_world_provider/screens/cart_screen.dart';
-import 'package:real_world_provider/screens/home_screen.dart';
-import 'package:real_world_provider/screens/product_details_screen.dart';
-import 'package:real_world_provider/screens/product_screen.dart';
 
+import 'core/router/router.dart';
 import 'core/theme/app_colors.dart';
 
 void main() {
@@ -22,18 +19,19 @@ void main() {
 
         // 3. DiscountProvider (DEPENDE de CartProvider)
         ChangeNotifierProxyProvider<CartProvider, DiscountProvider>(
-            create: (context) => DiscountProvider(null), // Primera creación sin dependencia
-            update: (context, cartProvider, previousDiscount) {
-              // Si ya existe un DiscountProvider, lo mantenemos pero actualizamos la dependecia
-              if (previousDiscount != null) {
-                return DiscountProvider(cartProvider);
-              }
-              // Si es la primera vez, creamos uno nuevo
+          create: (context) => DiscountProvider(null),
+          // Primera creación sin dependencia
+          update: (context, cartProvider, previousDiscount) {
+            // Si ya existe un DiscountProvider, lo mantenemos pero actualizamos la dependecia
+            if (previousDiscount != null) {
               return DiscountProvider(cartProvider);
-            },
+            }
+            // Si es la primera vez, creamos uno nuevo
+            return DiscountProvider(cartProvider);
+          },
         ),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Unbounded',
@@ -60,10 +58,7 @@ void main() {
             ),
           ],
         ),
-        routes: {
-          '/': (context) => HomeScreen(),
-          '/cart': (context) => CartScreen(),
-        },
+        routerConfig: router,
       ),
     ),
   );

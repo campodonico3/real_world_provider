@@ -38,10 +38,10 @@ class CustomBottomNavbar extends StatelessWidget {
         children: [
           _buildNavItem(
             index: 0,
-            icon: const Icon(
+            icon: Icon(
               Icons.location_on_outlined,
               size: 25,
-              color: iconGray,
+              color: colors.onSurface,
             ),
             label: 'Location',
             highlighted: selectedIndex == 0,
@@ -50,19 +50,22 @@ class CustomBottomNavbar extends StatelessWidget {
           // Home (centrado y resaltado)
           _buildNavItem(
             index: 1,
-            icon: const Icon(Icons.home, size: 25, color: pink),
+            icon: Icon(
+                Icons.home,
+                size: 25,
+                color: colors.onSurface
+            ),
             label: 'Home',
-            highlighted:
-                true, // siempre resaltado en la imagen; si quieres controlarlo usa selectedIndex
+            highlighted: selectedIndex == 1,
           ),
 
           // My Cart con badge
           _buildNavItem(
             index: 2,
-            icon: const Icon(
+            icon: Icon(
               Icons.shopping_bag_outlined,
               size: 25,
-              color: iconGray,
+              color: colors.onSurface,
             ),
             label: 'My Cart',
             showBadge: false,
@@ -70,11 +73,11 @@ class CustomBottomNavbar extends StatelessWidget {
             highlighted: selectedIndex == 2,
           ),
 
-          // Me
+          // Profile
           _buildNavItem(
             index: 3,
             icon: const Icon(Icons.person_outline, size: 25, color: iconGray),
-            label: 'Me',
+            label: 'Profile',
             highlighted: selectedIndex == 3,
           ),
         ],
@@ -91,12 +94,14 @@ class CustomBottomNavbar extends StatelessWidget {
     int badgeCount = 0,
   }) {
     final color = highlighted ? pink : iconGray;
+
     final labelStyle = TextStyle(
       color: highlighted ? pink : iconGray,
       fontSize: 11,
       fontWeight: FontWeight.w400,
       height: 1.1,
     );
+
     final coloredIcon = Icon((icon as Icon).icon, size: 25, color: color);
 
     return Expanded(

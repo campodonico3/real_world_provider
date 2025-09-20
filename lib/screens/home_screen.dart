@@ -214,14 +214,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
-        child: CustomBottomNavbar(
-          selectedIndex: _selectedIndex,
-          cartCount: _cartCount,
-          onTap: _onItemTapped,
-        ),
-      ),
+      // bottomNavigationBar: SafeArea(
+      //   minimum: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+      //   child: CustomBottomNavbar(
+      //     selectedIndex: _selectedIndex,
+      //     cartCount: _cartCount,
+      //     onTap: _onItemTapped,
+      //   ),
+      // ),
       // bottomNavigationBar: Padding(
       //   padding: const EdgeInsets.all(16.0),
       //   child: OrderActionBar(
