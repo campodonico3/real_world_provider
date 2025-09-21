@@ -76,7 +76,11 @@ class CustomBottomNavbar extends StatelessWidget {
           // Profile
           _buildNavItem(
             index: 3,
-            icon: const Icon(Icons.person_outline, size: 25, color: iconGray),
+            icon: Icon(
+                Icons.person_outline,
+                size: 25,
+                color: iconGray
+            ),
             label: 'Profile',
             highlighted: selectedIndex == 3,
           ),
@@ -89,9 +93,9 @@ class CustomBottomNavbar extends StatelessWidget {
     required int index,
     required Widget icon,
     required String label,
-    bool highlighted = false,
-    bool showBadge = false,
-    int badgeCount = 0,
+    bool highlighted = false, // Seleccionado (pintado de rosa)
+    bool showBadge = false, // Mostrar badge (solo para el carrito)
+    int badgeCount = 0,  // Número en el badge (solo para el carrito)
   }) {
     final color = highlighted ? pink : iconGray;
 
@@ -107,7 +111,13 @@ class CustomBottomNavbar extends StatelessWidget {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => onTap(index),
+        onTap: () {
+          // El estado por defecto al mostrar la primera pantalla es de 1 (HomeScreen)
+          debugPrint('[Custom_bottom_navbar]: Estado actual selectedIndex: $selectedIndex');
+          // Despues de pulsar un item, se actualiza el estado al índice del item pulsado
+          debugPrint('[Custom_bottom_navbar]: Item seleccionado: $index');
+          onTap(index);
+        },
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 14),
           child: Column(

@@ -3,10 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/custom_bottom_navbar.dart';
 
 class LayoutScaffold extends StatelessWidget {
-  const LayoutScaffold({
-    required this.navigationShell,
-    Key? key,
-  }) : super(key: key ?? const ValueKey<String>('LayoutScaffold'));
+  const LayoutScaffold({required this.navigationShell, Key? key,}) : super(key: key ?? const ValueKey<String>('LayoutScaffold'));
 
   final StatefulNavigationShell navigationShell;
 
@@ -14,7 +11,7 @@ class LayoutScaffold extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     body: navigationShell,
     bottomNavigationBar: CustomBottomNavbar(
-      selectedIndex: navigationShell.currentIndex,
+      selectedIndex: navigationShell.currentIndex, // 1
       onTap: navigationShell.goBranch,
       cartCount: 5, // Tiene que ser dinámico
     ),
