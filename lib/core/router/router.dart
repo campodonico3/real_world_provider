@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:real_world_provider/core/router/routers.dart';
+import 'package:real_world_provider/screens/sign_in_screen.dart';
+import 'package:real_world_provider/screens/sign_up_screen.dart';
 
 import '../../layout/layout_scaffold.dart';
 import '../../screens/cart_screen.dart';
@@ -11,8 +13,16 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: Routes.homePage,
+  initialLocation: Routes.login,
   routes: [
+    GoRoute(
+      path: Routes.login,
+      builder: (context, state) => const SignInScreen(),
+     ),
+    GoRoute(
+      path: Routes.register,
+      builder: (context, state) => const SignUpScreen(),
+    ),
     StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             LayoutScaffold(navigationShell: navigationShell),
