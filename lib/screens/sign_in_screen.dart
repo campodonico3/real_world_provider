@@ -44,15 +44,16 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+    // if (!_formKey.currentState!.validate()) return;
+    // setState(() => _loading = true);
 
     await Future.delayed(const Duration(seconds: 5));
 
-    setState(() => _loading = false);
+    // setState(() => _loading = false);
 
     if (mounted) {
       debugPrint('Aqui la simulación de sesión iniciada');
+      GoRouter.of(context).go('/home');
     }
   }
 
