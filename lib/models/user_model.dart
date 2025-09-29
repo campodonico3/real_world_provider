@@ -42,6 +42,7 @@ class User {
       'name': name,
       'email': email,
       'createdAt': createdAt.toUtc().toIso8601String(),
+      'updatedAt': updatedAt?.toUtc().toIso8601String(),
     };
 
     // Solo incluir campos opcionales si no son null
@@ -89,11 +90,14 @@ class User {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'User(id: $id, name: $name, email: $email)';
+  String toString() => 'User(id: $id, name: $name, email: $email, phone: $phone, profileImg: $profileImg, createdAt: $createdAt, updatedAt: $updatedAt)';
 
   // Métodos de validación estáticos
   static String _validateString(dynamic value, String fieldName) {
-    if (value == null || value.toString().trim().isEmpty) {
+    if (value == null || value
+        .toString()
+        .trim()
+        .isEmpty) {
       throw ArgumentError('$fieldName cannot be null or empty');
     }
     return value.toString().trim();
@@ -101,7 +105,7 @@ class User {
 
   static String _validateEmail(dynamic value) {
     final email = _validateString(value, 'email');
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(email)) {
       throw ArgumentError('Invalid email format: $email');
     }
@@ -113,12 +117,35 @@ class User {
       throw ArgumentError('$fieldName cannot be null');
     }
 
+    if (value is DateTime) {
+      return value;
+    }
+
     if (value is String) {
-      return DateTime.parse(value);
-    } else if (value is int) {
-      return DateTime.fromMillisecondsSinceEpoch(value);
-    } else {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {
+        final maybeInt = int.tryParse(value);
+        if (maybeInt != null) {
+          return _fromEpochGuess(maybeInt);
+        }
+      }
       throw ArgumentError('Invalid $fieldName format: $value');
+    } else if (value is int) {
+      return _fromEpochGuess(value);
+    } else {
+      throw ArgumentError('Invalid $fieldName type: $value');
+    }
+  }
+
+  // helper: detecta si es segundos (10 dígitos) o ms (13 dígitos)
+  static DateTime _fromEpochGuess(int epoch) {
+    if (epoch.abs() < 10000000000) {
+      // probablemente segundos
+      return DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true).toLocal();
+    } else {
+      // probablemente milisegundos
+      return DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true).toLocal();
     }
   }
 }
@@ -166,7 +193,8 @@ class Address {
         state: _validateString(json['state'], 'state'),
         zipCode: _validateString(json['zipCode'], 'zipCode'),
         latitude: _validateCoordinate(json['latitude'], 'latitude', -90, 90),
-        longitude: _validateCoordinate(json['longitude'], 'longitude', -180, 180),
+        longitude: _validateCoordinate(
+            json['longitude'], 'longitude', -180, 180),
         apartmentNumber: json['apartmentNumber']?.toString().trim(),
         deliveryInstructions: json['deliveryInstructions']?.toString().trim(),
         type: _parseAddressType(json['type']),
@@ -258,7 +286,10 @@ class Address {
 
   // Métodos de validación estáticos
   static String _validateString(dynamic value, String fieldName) {
-    if (value == null || value.toString().trim().isEmpty) {
+    if (value == null || value
+        .toString()
+        .trim()
+        .isEmpty) {
       throw ArgumentError('$fieldName cannot be null or empty');
     }
     return value.toString().trim();
@@ -269,16 +300,18 @@ class Address {
       throw ArgumentError('$fieldName cannot be null');
     }
 
-    final coordinate = (value is num) ? value.toDouble() : double.tryParse(value.toString());
+    if (value is String && value.trim().isEmpty) {
+      throw ArgumentError('$fieldName cannot be empty');
+    }
 
+    final raw = value is String ? value.replaceAll(',', '.').trim() : value.toString();
+    final coordinate = double.tryParse(raw);
     if (coordinate == null) {
       throw ArgumentError('Invalid $fieldName format: $value');
     }
-
     if (coordinate < min || coordinate > max) {
       throw ArgumentError('$fieldName must be between $min and $max: $coordinate');
     }
-
     return coordinate;
   }
 
