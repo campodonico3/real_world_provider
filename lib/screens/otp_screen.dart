@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../core/utils/size_config.dart';
+import 'package:go_router/go_router.dart';
 
 class OtpScreen extends StatelessWidget {
   const OtpScreen({super.key});
@@ -33,7 +32,9 @@ class OtpScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    GoRouter.of(context).pop();
+                  },
                   icon: const Icon(CupertinoIcons.back),
                   splashRadius: 24,
                   tooltip: 'Atrás',
