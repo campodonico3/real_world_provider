@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:real_world_provider/core/router/routers.dart';
+import 'package:real_world_provider/providers/auth_provider.dart';
 import 'package:real_world_provider/screens/otp_screen.dart';
 import 'package:real_world_provider/screens/sign_in_screen.dart';
 import 'package:real_world_provider/screens/sign_up_screen.dart';
@@ -13,70 +14,97 @@ import '../../screens/product_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-final router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: Routes.otp,
-  routes: [
-    GoRoute(
-      path: Routes.splash,
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: Routes.login,
-      builder: (context, state) => const SignInScreen(),
-    ),
-    GoRoute(
-      path: Routes.register,
-      builder: (context, state) => const SignUpScreen(),
-    ),
-    GoRoute(
-      path: Routes.otp,
-      builder: (context, state) => const OtpScreen(),
-    ),
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          LayoutScaffold(navigationShell: navigationShell),
-      branches: [
-        // Rama 0: Location
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: Routes.locationPage,
-              builder: (context, state) => const ProductScreen(),
-            ),
-          ],
-        ),
+GoRouter createRouter(AuthProvider authProvider) {
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation:
+    authProvider.isAuthenticated ? Routes.homePage : Routes.login,
+    refreshListenable: authProvider,
+    redirect: (context, state) {
+      final bool isAuthenticated = authProvider.isAuthenticated;
+      final String location = state.matchedLocation;
 
-        // Rama 1: Home
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: Routes.homePage,
-              builder: (context, state) => const HomeScreen(),
-            ),
-          ],
-        ),
+      final bool isAuthFlow = location == Routes.login ||
+          location == Routes.register ||
+          location == Routes.otp ||
+          location == Routes.splash;
 
-        // Rama 2: My Cart
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: Routes.myCartPage,
-              builder: (context, state) => const CartScreen(),
-            ),
-          ],
-        ),
+      if (!isAuthenticated && !isAuthFlow) {
+        return Routes.login;
+      }
 
-        // Rama 3: Profile
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: Routes.profilePage,
-              builder: (context, state) => const CartScreen(),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ],
-);
+      if (isAuthenticated &&
+          (location == Routes.login ||
+              location == Routes.register ||
+              location == Routes.otp ||
+              location == Routes.splash)) {
+        return Routes.homePage;
+      }
+
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: Routes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.login,
+        builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: Routes.register,
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: Routes.otp,
+        builder: (context, state) => const OtpScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            LayoutScaffold(navigationShell: navigationShell),
+        branches: [
+          // Rama 0: Location
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.locationPage,
+                builder: (context, state) => const ProductScreen(),
+              ),
+            ],
+          ),
+
+          // Rama 1: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.homePage,
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+
+          // Rama 2: My Cart
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.myCartPage,
+                builder: (context, state) => const CartScreen(),
+              ),
+            ],
+          ),
+
+          // Rama 3: Profile
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.profilePage,
+                builder: (context, state) => const CartScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}

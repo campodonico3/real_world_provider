@@ -5,6 +5,7 @@ import 'package:real_world_provider/widgets/input_field_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/router/routers.dart';
+import '../services/auth_service1.dart';
 import '../widgets/primary_button_widget.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -15,13 +16,14 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool _showPassword = false;
   bool _loading = false;
+
+  String baseUrl = "http://localhost:3000/api/auth";
 
   @override
   void dispose() {
@@ -43,18 +45,65 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
-  Future<void> _submit() async {
-    // if (!_formKey.currentState!.validate()) return;
-    // setState(() => _loading = true);
-
-    await Future.delayed(const Duration(seconds: 5));
-
-    // setState(() => _loading = false);
-
-    if (mounted) {
-      debugPrint('Aqui la simulación de sesión iniciada');
-      GoRouter.of(context).go('/home');
+  Future<void> _submitAuth() async {
+    debugPrint('➡️ Entrando en _submitAuth()'); // <-- punto de control
+    // Validar formulario
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('❌ Validación del formulario fallida');
+      return;
     }
+
+    setState(() => _loading = true);
+
+    try {
+      // Llamda a la API
+      final response = await AuthService.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      if (mounted) {
+        if (response.success && response.data != null) {
+          // Login exitoso
+          debugPrint('Login exitoso: ${response.data!.user.name}');
+
+          // Mostrar mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('¡Bienvenido ${response.data!.user.name}!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navegar a home
+          GoRouter.of(context).go('/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog('Error de connexion: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -77,18 +126,18 @@ class _SignInScreenState extends State<SignInScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(CupertinoIcons.back),
-                  splashRadius: 24,
-                  tooltip: 'Atrás',
-                ),
-              ),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     color: Colors.grey.shade100,
+              //     shape: BoxShape.circle,
+              //   ),
+              //   child: IconButton(
+              //     onPressed: () {},
+              //     icon: const Icon(CupertinoIcons.back),
+              //     splashRadius: 24,
+              //     tooltip: 'Atrás',
+              //   ),
+              // ),
               SizedBox(height: 16),
               Text(
                 'Login',
@@ -101,6 +150,7 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               SizedBox(height: 28),
               Form(
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -118,6 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       keyboardType: TextInputType.emailAddress,
                       controller: _emailController,
                       validator: _emailValidator,
+                      enabled: !_loading,
                     ),
                     SizedBox(height: 20),
                     Text(
@@ -134,6 +185,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       controller: _passwordController,
                       obscureText: !_showPassword,
                       validator: _passwordValidator,
+                      enabled: !_loading,
                       suffix: IconButton(
                         onPressed: () =>
                             setState(() => _showPassword = !_showPassword),
@@ -151,7 +203,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          debugPrint('Aquí abrir recuperación de contraseña');
+                          debugPrint(
+                            'Aquí abrir recuperación de contraseña (OTP)',
+                          );
+                          GoRouter.of(context).push('/otp');
                         },
                         child: const Text(
                           'Forgot Password?',
@@ -167,7 +222,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             label: 'Continue',
                             loading: _loading,
                             enabled: !_loading,
-                            onPressed: _submit,
+                            onPressed: () => _submitAuth(),
                             width: width,
                           ),
                         ),
