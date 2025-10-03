@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:real_world_provider/widgets/input_field_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/router/routers.dart';
-import '../services/auth_service1.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/primary_button_widget.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -21,9 +22,8 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool _showPassword = false;
-  bool _loading = false;
 
-  String baseUrl = "http://localhost:3000/api/auth";
+  // String baseUrl = "http://localhost:3000/api/auth"; ELIMINAR
 
   @override
   void dispose() {
@@ -53,41 +53,35 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    setState(() => _loading = true);
+    // Obtener AuthProvider sin escuchar cambios
+    final authProvider = context.read<AuthProvider>();
 
-    try {
-      // Llamda a la API
-      final response = await AuthService.login(
-        email: _emailController.text,
-        password: _passwordController.text,
+    // Llamar al método login del Provider
+    final success = await authProvider.login(email: _emailController.text.trim(), password: _passwordController.text);
+
+    // Verificar si el widget sigue montado
+    if (!mounted) return;
+
+    if (success) {
+      debugPrint('✅ Login Exitoso: ${authProvider.user?.name}');
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Bienvenido ${authProvider.user?.name ?? ""}!'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
       );
+    } else {
+      // Login fallido
+      debugPrint('❌ Login fallido: ${authProvider.errorMessage}');
 
-      if (mounted) {
-        if (response.success && response.data != null) {
-          // Login exitoso
-          debugPrint('Login exitoso: ${response.data!.user.name}');
-
-          // Mostrar mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('¡Bienvenido ${response.data!.user.name}!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navegar a home
-          GoRouter.of(context).go('/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorDialog('Error de connexion: ${e.toString()}');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      // Mostrar error del Provider
+      _showErrorDialog(
+        authProvider.errorMessage ?? 'Error desconocido en el login',
+      );
     }
+
   }
 
   void _showErrorDialog(String message) {
@@ -118,188 +112,199 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFFFF7EE),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: 20,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Container(
-              //   decoration: BoxDecoration(
-              //     color: Colors.grey.shade100,
-              //     shape: BoxShape.circle,
-              //   ),
-              //   child: IconButton(
-              //     onPressed: () {},
-              //     icon: const Icon(CupertinoIcons.back),
-              //     splashRadius: 24,
-              //     tooltip: 'Atrás',
-              //   ),
-              // ),
-              SizedBox(height: 16),
-              Text(
-                'Login',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Únete a nuestra comunidad y encuentra tu antojo.',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
-              ),
-              SizedBox(height: 28),
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Email',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    InputField(
-                      label: 'Enter your email',
-                      hintText: 'Enter your email',
-                      keyboardType: TextInputType.emailAddress,
-                      controller: _emailController,
-                      validator: _emailValidator,
-                      enabled: !_loading,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Password',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    InputField(
-                      label: 'Contraseña',
-                      hintText: 'Introduce tu contraseña',
-                      controller: _passwordController,
-                      obscureText: !_showPassword,
-                      validator: _passwordValidator,
-                      enabled: !_loading,
-                      suffix: IconButton(
-                        onPressed: () =>
-                            setState(() => _showPassword = !_showPassword),
-                        icon: Icon(
-                          _showPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        tooltip: _showPassword
-                            ? 'Ocultar contraseña'
-                            : 'Mostrar contraseña',
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          debugPrint(
-                            'Aquí abrir recuperación de contraseña (OTP)',
-                          );
-                          GoRouter.of(context).push('/otp');
-                        },
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            label: 'Continue',
-                            loading: _loading,
-                            enabled: !_loading,
-                            onPressed: () => _submitAuth(),
-                            width: width,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.black)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            'O',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: Colors.black)),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    SocialButton(
-                      label: 'Continuar con Google',
-                      leading: SvgPicture.asset(
-                        'assets/images/icon_google.svg',
-                        width: 20,
-                        height: 20,
-                      ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Login con Google (simulado)'),
-                          ),
-                        );
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    SocialButton(
-                      label: 'Continuar con Apple',
-                      leading: SvgPicture.asset(
-                        'assets/images/icon_apple.svg',
-                        width: 20,
-                        height: 20,
-                      ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Login con Google (simulado)'),
-                          ),
-                        );
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Spacer(),
-                        Text(
-                          '¿No tienes una cuenta?',
-                          style: TextStyle(fontWeight: FontWeight.w300),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            debugPrint('Redirigir a screen de registro');
-                            GoRouter.of(context).push('/register');
-                          },
-                          child: Text(
-                            'Registrarse',
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                        Spacer(),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        child: Consumer<AuthProvider>(
+          builder: (context, authProvider, _){
+            // Obtener estado de loading del Provider
+            final isLoading = authProvider.isLoading;
+
+           return SingleChildScrollView(
+             padding: EdgeInsets.symmetric(
+               horizontal: horizontalPadding,
+               vertical: 20,
+             ),
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 // Container(
+                 //   decoration: BoxDecoration(
+                 //     color: Colors.grey.shade100,
+                 //     shape: BoxShape.circle,
+                 //   ),
+                 //   child: IconButton(
+                 //     onPressed: () {},
+                 //     icon: const Icon(CupertinoIcons.back),
+                 //     splashRadius: 24,
+                 //     tooltip: 'Atrás',
+                 //   ),
+                 // ),
+                 SizedBox(height: 16),
+                 Text(
+                   'Login',
+                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                 ),
+                 SizedBox(height: 8),
+                 Text(
+                   'Únete a nuestra comunidad y encuentra tu antojo.',
+                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
+                 ),
+                 SizedBox(height: 28),
+                 Form(
+                   key: _formKey,
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                       Text(
+                         'Email',
+                         style: TextStyle(
+                           fontSize: 14,
+                           fontWeight: FontWeight.w400,
+                         ),
+                       ),
+                       SizedBox(height: 5),
+                       InputField(
+                         label: 'Enter your email',
+                         hintText: 'Enter your email',
+                         keyboardType: TextInputType.emailAddress,
+                         controller: _emailController,
+                         validator: _emailValidator,
+                         enabled: !isLoading,
+                       ),
+                       SizedBox(height: 20),
+                       Text(
+                         'Password',
+                         style: TextStyle(
+                           fontSize: 14,
+                           fontWeight: FontWeight.w400,
+                         ),
+                       ),
+                       SizedBox(height: 5),
+                       InputField(
+                         label: 'Contraseña',
+                         hintText: 'Introduce tu contraseña',
+                         controller: _passwordController,
+                         obscureText: !_showPassword,
+                         validator: _passwordValidator,
+                         enabled: !isLoading,
+                         suffix: IconButton(
+                           onPressed: () =>
+                               setState(() => _showPassword = !_showPassword),
+                           icon: Icon(
+                             _showPassword
+                                 ? Icons.visibility_off
+                                 : Icons.visibility,
+                           ),
+                           tooltip: _showPassword
+                               ? 'Ocultar contraseña'
+                               : 'Mostrar contraseña',
+                         ),
+                       ),
+                       Align(
+                         alignment: Alignment.centerRight,
+                         child: TextButton(
+                           onPressed: isLoading ? null : () {
+                             debugPrint('Aquí abrir recuperación de contraseña (OTP)');
+                             GoRouter.of(context).push('/otp');
+                           },
+                           child: const Text(
+                             'Forgot Password?',
+                             style: TextStyle(fontSize: 11),
+                           ),
+                         ),
+                       ),
+                       SizedBox(height: 6),
+                       Row(
+                         children: [
+                           Expanded(
+                             child: PrimaryButton(
+                               label: 'Continue',
+                               loading: isLoading,
+                               enabled: !isLoading,
+                               onPressed: () => _submitAuth(),
+                               width: width,
+                             ),
+                           ),
+                         ],
+                       ),
+                       SizedBox(height: 16),
+                       Row(
+                         children: [
+                           Expanded(child: Divider(color: Colors.black)),
+                           Padding(
+                             padding: const EdgeInsets.symmetric(horizontal: 8),
+                             child: Text(
+                               'O',
+                               style: TextStyle(color: Colors.black),
+                             ),
+                           ),
+                           Expanded(child: Divider(color: Colors.black)),
+                         ],
+                       ),
+                       SizedBox(height: 16),
+                       SocialButton(
+                         label: 'Continuar con Google',
+                         leading: SvgPicture.asset(
+                           'assets/images/icon_google.svg',
+                           width: 20,
+                           height: 20,
+                         ),
+                         onTap: isLoading
+                             ? () {}
+                             : () {
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             const SnackBar(
+                               content: Text('Login con Google (simulado)'),
+                             ),
+                           );
+                         },
+                       ),
+                       SizedBox(height: 10),
+                       SocialButton(
+                         label: 'Continuar con Apple',
+                         leading: SvgPicture.asset(
+                           'assets/images/icon_apple.svg',
+                           width: 20,
+                           height: 20,
+                         ),
+                         onTap: isLoading // MODIFICADO: Deshabilitar si está cargando
+                             ? () {}
+                             : () {
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             const SnackBar(
+                               content: Text('Login con Apple (simulado)'), // CORREGIDO: Era "Google"
+                             ),
+                           );
+                         },
+                       ),
+                       SizedBox(height: 10),
+                       Row(
+                         children: [
+                           Spacer(),
+                           Text(
+                             '¿No tienes una cuenta?',
+                             style: TextStyle(fontWeight: FontWeight.w300),
+                           ),
+                           TextButton(
+                             onPressed: isLoading // MODIFICADO: Deshabilitar si está cargando
+                                 ? null
+                                 : () {
+                               debugPrint('Redirigir a screen de registro');
+                               GoRouter.of(context).push('/register');
+                             },
+                             child: Text(
+                               'Registrarse',
+                               style: TextStyle(fontWeight: FontWeight.w500),
+                             ),
+                           ),
+                           Spacer(),
+                         ],
+                       ),
+                     ],
+                   ),
+                 ),
+               ],
+             ),
+           );
+          }
         ),
       ),
     );

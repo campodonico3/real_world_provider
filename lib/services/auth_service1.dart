@@ -9,6 +9,9 @@ class AuthService {
   static const String _loginEndpoint = '/auth/login';
   static const String _registerEndpoint = '/auth/register';
 
+  static const String _tokenKey = 'auth_token';
+  static const String _userKey = 'auth_user';
+
   // Headers comunes
   static const Map<String, String> _headers = {
     'Content-Type': 'application/json',
@@ -147,6 +150,24 @@ class AuthService {
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
+
+  // Guardar usuario
+  static Future<void> saveUser(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = jsonEncode(user.toJson());
+    await prefs.setString(_userKey, userJson);
+  }
+
+  // Obtener usuario guardado
+  static Future<User?> getSavedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString(_userKey);
+    if (userJson != null) {
+      return User.fromJson(jsonDecode(userJson));
+    }
+    return null;
+  }
+
 }
 
 /// Clase para la respuesta del login

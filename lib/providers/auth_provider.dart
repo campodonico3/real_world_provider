@@ -33,16 +33,27 @@ class AuthProvider with ChangeNotifier {
   Future<void> _checkAuthStatus() async {
     try {
       final savedToken = await AuthService.getToken();
+
       if (savedToken != null && savedToken.isNotEmpty) {
         _token = savedToken;
-        _status = AuthStatus.authenticated;
-        // Aquí podrías llamar a una API para obtener los datos del usuario
-        // o guardar los datos del usuario en SharedPreferences también
+
+        // Cargar datos del usuario desde SharedPreferences
+        final savedUser = await AuthService.getSavedUser();
+        if (savedUser != null) {
+          _user = savedUser;
+          _status = AuthStatus.authenticated;
+        } else {
+          // Si hay token pero no usuario, limpiar todo
+          await AuthService.logout();
+          _status = AuthStatus.unauthenticated;
+        }
       } else {
         _status = AuthStatus.unauthenticated;
       }
     } catch (e) {
+      debugPrint('Error checking auth status: $e');
       _status = AuthStatus.unauthenticated;
+      notifyListeners();
     }
   }
 
@@ -62,6 +73,10 @@ class AuthProvider with ChangeNotifier {
       if (response.success && response.data != null) {
         _user = response.data!.user;
         _token = response.data!.token;
+
+        // Guardar usuario en SharedPrederences
+        await AuthService.saveUser(response.data!.user);
+
         _status = AuthStatus.authenticated;
         _errorMessage = null;
         notifyListeners();
@@ -96,6 +111,10 @@ class AuthProvider with ChangeNotifier {
       if (response.success && response.data != null) {
         _user = response.data!.user;
         _token = response.data!.token;
+
+        // Guardar usuario en SharedPreferences
+        await AuthService.saveUser(response.data!.user);
+
         _status = AuthStatus.authenticated;
         _errorMessage = null;
         notifyListeners();
@@ -124,6 +143,8 @@ class AuthProvider with ChangeNotifier {
   /// Actualizar datos del usuario
   void updateUser(User updatedUser) {
     _user = updatedUser;
+    // Persistir cambios en SharedPreferences
+    AuthService.saveUser(updatedUser);
     notifyListeners();
   }
 

@@ -17,28 +17,39 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation:
-    authProvider.isAuthenticated ? Routes.homePage : Routes.login,
+    initialLocation: authProvider.isAuthenticated ? Routes.homePage : Routes.login,
     refreshListenable: authProvider,
     redirect: (context, state) {
       final bool isAuthenticated = authProvider.isAuthenticated;
       final String location = state.matchedLocation;
+
+      debugPrint('🔄 Router Redirect - Auth: $isAuthenticated, Location: $location');
 
       final bool isAuthFlow = location == Routes.login ||
           location == Routes.register ||
           location == Routes.otp ||
           location == Routes.splash;
 
+      // Si no está autenticado y no está en flujo de auth, redirigir a login
       if (!isAuthenticated && !isAuthFlow) {
+        debugPrint('➡️ Redirigiendo a login (no autenticado)');
         return Routes.login;
       }
 
+      // Si está autenticado y está en flujo de auth, redirigir a home
       if (isAuthenticated &&
           (location == Routes.login ||
               location == Routes.register ||
               location == Routes.otp ||
               location == Routes.splash)) {
+        debugPrint('➡️ Redirigiendo a home (ya autenticado)');
         return Routes.homePage;
+      }
+
+      // Si está en splash y no autenticado
+      if (!isAuthenticated && location == Routes.splash) {
+        debugPrint('➡️ Redirigiendo a login desde splash');
+        return Routes.login;
       }
 
       return null;
@@ -61,8 +72,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (context, state) => const OtpScreen(),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            LayoutScaffold(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) => LayoutScaffold(navigationShell: navigationShell),
         branches: [
           // Rama 0: Location
           StatefulShellBranch(
