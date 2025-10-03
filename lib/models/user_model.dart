@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 class User {
   final String id;
   final String name;
@@ -114,7 +116,8 @@ class User {
 
   static DateTime _parseDateTime(dynamic value, String fieldName) {
     if (value == null) {
-      throw ArgumentError('$fieldName cannot be null');
+      debugPrint('[USER MODEL] - ⚠️ $fieldName es null, usando DateTime.now()');
+      return DateTime.now();
     }
 
     if (value is DateTime) {
