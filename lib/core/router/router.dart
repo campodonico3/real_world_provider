@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:real_world_provider/core/router/routers.dart';
 import 'package:real_world_provider/providers/auth_provider.dart';
 import 'package:real_world_provider/screens/otp_screen.dart';
+import 'package:real_world_provider/screens/profile_screen.dart';
 import 'package:real_world_provider/screens/sign_in_screen.dart';
 import 'package:real_world_provider/screens/sign_up_screen.dart';
 import 'package:real_world_provider/screens/splash_screen.dart';
@@ -109,7 +110,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: Routes.profilePage,
-                builder: (context, state) => const CartScreen(),
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),

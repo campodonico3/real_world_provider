@@ -127,19 +127,20 @@ class AuthService {
   /// Obtener token guardado
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    return prefs.getString(_tokenKey);
   }
 
   /// Guardar token
   static Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await prefs.setString(_tokenKey, token);
   }
 
   /// Cerrar sesión (eliminar token)
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userKey);
   }
 
   /// Obtener headers con autorización
