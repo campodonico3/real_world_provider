@@ -80,7 +80,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: Routes.locationPage,
-                builder: (context, state) => const ProductScreen(),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),
@@ -100,7 +100,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             routes: [
               GoRoute(
                 path: Routes.myCartPage,
-                builder: (context, state) => const CartScreen(),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),

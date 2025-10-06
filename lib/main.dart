@@ -23,24 +23,24 @@ void main() async{
         ChangeNotifierProvider(create: (context) => AuthProvider()),
 
         // 1. ProductProvider (independiente)
-        ChangeNotifierProvider(create: (context) => ProductProvider()),
+        //ChangeNotifierProvider(create: (context) => ProductProvider()),
 
         // 2. CartProvider (independiente)
-        ChangeNotifierProvider(create: (context) => CartProvider()),
+        //ChangeNotifierProvider(create: (context) => CartProvider()),
 
         // 3. DiscountProvider (DEPENDE de CartProvider)
-        ChangeNotifierProxyProvider<CartProvider, DiscountProvider>(
-          create: (context) => DiscountProvider(null),
-          // Primera creación sin dependencia
-          update: (context, cartProvider, previousDiscount) {
-            // Si ya existe un DiscountProvider, lo mantenemos pero actualizamos la dependecia
-            if (previousDiscount != null) {
-              return DiscountProvider(cartProvider);
-            }
-            // Si es la primera vez, creamos uno nuevo
-            return DiscountProvider(cartProvider);
-          },
-        ),
+        // ChangeNotifierProxyProvider<CartProvider, DiscountProvider>(
+        //   create: (context) => DiscountProvider(null),
+        //   // Primera creación sin dependencia
+        //   update: (context, cartProvider, previousDiscount) {
+        //     // Si ya existe un DiscountProvider, lo mantenemos pero actualizamos la dependecia
+        //     if (previousDiscount != null) {
+        //       return DiscountProvider(cartProvider);
+        //     }
+        //     // Si es la primera vez, creamos uno nuevo
+        //     return DiscountProvider(cartProvider);
+        //   },
+        // ),
       ],
       child: Builder(
         builder: (context) {
