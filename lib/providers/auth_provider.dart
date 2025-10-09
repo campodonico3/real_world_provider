@@ -12,13 +12,13 @@ enum AuthStatus {
 
 class AuthProvider with ChangeNotifier {
   AuthStatus _status = AuthStatus.uninitialized;
-  User? _user;
+  UserModel? _user;
   String? _token;
   String? _errorMessage;
 
   // Getters
   AuthStatus get status => _status;
-  User? get user => _user;
+  UserModel? get user => _user;
   String? get token => _token;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
@@ -141,7 +141,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Actualizar datos del usuario
-  void updateUser(User updatedUser) {
+  void updateUser(UserModel updatedUser) {
     _user = updatedUser;
     // Persistir cambios en SharedPreferences
     AuthService.saveUser(updatedUser);

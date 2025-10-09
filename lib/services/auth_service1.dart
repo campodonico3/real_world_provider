@@ -153,18 +153,18 @@ class AuthService {
   }
 
   // Guardar usuario
-  static Future<void> saveUser(User user) async {
+  static Future<void> saveUser(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = jsonEncode(user.toJson());
     await prefs.setString(_userKey, userJson);
   }
 
   // Obtener usuario guardado
-  static Future<User?> getSavedUser() async {
+  static Future<UserModel?> getSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString(_userKey);
     if (userJson != null) {
-      return User.fromJson(jsonDecode(userJson));
+      return UserModel.fromJson(jsonDecode(userJson));
     }
     return null;
   }
@@ -173,7 +173,7 @@ class AuthService {
 
 /// Clase para la respuesta del login
 class LoginResponse {
-  final User user;
+  final UserModel user;
   final String token;
 
   const LoginResponse({
@@ -183,7 +183,7 @@ class LoginResponse {
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
-      user: User.fromJson(json['user']),
+      user: UserModel.fromJson(json['user']),
       token: json['token'],
     );
   }
@@ -193,5 +193,34 @@ class LoginResponse {
       'user': user.toJson(),
       'token': token,
     };
+  }
+}
+
+class ApiResponse<T> {
+  final bool success;
+  final T? data;
+  final String? message;
+  final int? statusCode;
+
+  const ApiResponse({
+    required this.success,
+    this.data,
+    this.message,
+    this.statusCode,
+  });
+
+  factory ApiResponse.success(T data) {
+    return ApiResponse(
+      success: true,
+      data: data,
+    );
+  }
+
+  factory ApiResponse.error(String message, [int? statusCode]) {
+    return ApiResponse(
+      success: false,
+      message: message,
+      statusCode: statusCode,
+    );
   }
 }
