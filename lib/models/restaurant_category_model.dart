@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class RestaurantCategoryModel {
   final int id;
   final String name;
@@ -22,19 +24,23 @@ class RestaurantCategoryModel {
   });
 
   factory RestaurantCategoryModel.fromJson(Map<String, dynamic> json) {
-    return RestaurantCategoryModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      slug: json['slug'] as String,
-      description: json['description'] as String?,
-      iconUrl: json['icon_url'] as String?,
-      isActive: json['is_active'] as bool,
-      displayOrder: json['display_order'] as int? ?? 0,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
-    );
+    try {
+      return RestaurantCategoryModel(
+        id: _parseInt(json['id']),
+        name: json['name'] as String,
+        slug: json['slug'] as String,
+        description: json['description'] as String?,
+        iconUrl: json['icon_Url'] as String?,
+        isActive: json['is_Active'] as bool,
+        displayOrder: json['display_Order'] as int? ?? 0,
+        createdAt: _parseDateTime(json['created_at'] ?? json['createdAt']) ?? DateTime.now(),
+        updatedAt: _parseDateTime(json['updated_at'] ?? json['updatedAt']),
+      );
+    } catch (e) {
+      debugPrint('[RestaurantCategory] - ❌ Error parseando: $e');
+      debugPrint('[RestaurantCategory] - 📄 JSON: $json');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -74,4 +80,47 @@ class RestaurantCategoryModel {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  // Helper para parsear int de forma segura
+  static int _parseInt(dynamic value) {
+    if (value == null) {
+      debugPrint('[RestaurantCategory] - ⚠️ ID es null, usando 0');
+      return 0;
+    }
+    if (value is int) return value;
+    if (value is String) {
+      final parsed = int.tryParse(value);
+      if (parsed != null) return parsed;
+      debugPrint('[RestaurantCategory] - ⚠️ No se pudo parsear ID');
+      return 0;
+    }
+    return 0;
+  }
+
+  // Helper para parsear DateTime de forma segura
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        debugPrint('[RestaurantCategory] - ⚠️ Error parseando fecha: $value');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is RestaurantCategoryModel && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() => 'RestaurantCategory(id: $id, name: $name, slug: $slug)';
 }

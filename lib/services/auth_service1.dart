@@ -1,50 +1,42 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:real_world_provider/core/api/api_config.dart';
+import 'package:real_world_provider/core/api/api_endpoints.dart';
+import 'package:real_world_provider/core/constants/storage_keys.dart';
+import 'package:real_world_provider/core/utils/api_exception_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/api/api_response.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://192.168.0.102:3000/api'; // Cambia por tu URL
-  static const String _loginEndpoint = '/auth/login';
-  static const String _registerEndpoint = '/auth/register';
-
-  static const String _tokenKey = 'auth_token';
-  static const String _userKey = 'auth_user';
-
-  // Headers comunes
-  static const Map<String, String> _headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-
-  /// Login del usuario
   static Future<ApiResponse<LoginResponse>> login({
     required String email,
     required String password,
   }) async {
     debugPrint('\n🔵 ===== INICIANDO LOGIN =====');
     debugPrint('📧 Email: $email');
-    debugPrint('🔑 Password: ${password.isNotEmpty ? "✅ Proporcionado" : "❌ Vacío"}');
-    debugPrint('🌐 URL: $_baseUrl$_loginEndpoint');
+    debugPrint(
+      '🔑 Password: ${password.isNotEmpty ? "✅ Proporcionado" : "❌ Vacío"}',
+    );
+    debugPrint('🌐 URL: ${ApiEndpoints.getUrl(ApiEndpoints.login)}');
 
     try {
-      final body = {
-        'email': email.trim(),
-        'password': password,
-      };
+      final body = {'email': email.trim(), 'password': password};
 
       debugPrint('📦 Body a enviar: ${jsonEncode(body)}');
       debugPrint('⏳ Enviando request...');
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_loginEndpoint'),
-        headers: _headers,
-        body: jsonEncode(body),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw Exception('Timeout: La solicitud tardó demasiado'),
-      );
+      final response = await http
+          .post(
+            Uri.parse(ApiEndpoints.getUrl(ApiEndpoints.login)),
+            headers: ApiConfig.headers,
+            body: jsonEncode(body),
+          )
+          .timeout(
+            ApiConfig.requestTimeout,
+            onTimeout: () => throw ApiExceptionHandler.handleTimeout(),
+          );
 
       debugPrint('📨 Respuesta recibida!');
       debugPrint('📊 Status Code: ${response.statusCode}');
@@ -54,10 +46,7 @@ class AuthService {
 
       if (response.statusCode == 200 && responseData['success'] == true) {
         final loginResponse = LoginResponse.fromJson(responseData['data']);
-
-        // Guardar token en SharedPreferences
         await _saveToken(loginResponse.token);
-
         return ApiResponse.success(loginResponse);
       } else {
         return ApiResponse.error(
@@ -65,14 +54,11 @@ class AuthService {
           response.statusCode,
         );
       }
-    } on http.ClientException {
-      return ApiResponse.error('Error de conexión. Verifica tu internet.');
     } catch (e) {
       return ApiResponse.error('Error inesperado: ${e.toString()}');
     }
   }
 
-  /// Registro de nuevo usuario
   static Future<ApiResponse<LoginResponse>> register({
     required String name,
     required String email,
@@ -87,21 +73,23 @@ class AuthService {
         if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
       };
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_registerEndpoint'),
-        headers: _headers,
-        body: jsonEncode(body),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw Exception('Timeout: La solicitud tardó demasiado'),
-      );
+      final response = await http
+          .post(
+            Uri.parse(ApiEndpoints.getUrl(ApiEndpoints.register)),
+            headers: ApiConfig.headers,
+            body: jsonEncode(body),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () =>
+                throw Exception('Timeout: La solicitud tardó demasiado'),
+          );
 
       final Map<String, dynamic> responseData = jsonDecode(response.body);
 
       if (response.statusCode == 201 && responseData['success'] == true) {
         final loginResponse = LoginResponse.fromJson(responseData['data']);
 
-        // Guardar token en SharedPreferences
         await _saveToken(loginResponse.token);
 
         return ApiResponse.success(loginResponse);
@@ -127,27 +115,27 @@ class AuthService {
   /// Obtener token guardado
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return prefs.getString(StorageKeys.authToken);
   }
 
   /// Guardar token
   static Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
+    await prefs.setString(StorageKeys.authToken, token);
   }
 
   /// Cerrar sesión (eliminar token)
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    await prefs.remove(StorageKeys.authToken);
+    await prefs.remove(StorageKeys.authUser);
   }
 
   /// Obtener headers con autorización
   static Future<Map<String, String>> getAuthHeaders() async {
     final token = await getToken();
     return {
-      ..._headers,
+      ...ApiConfig.headers,
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
@@ -156,19 +144,18 @@ class AuthService {
   static Future<void> saveUser(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = jsonEncode(user.toJson());
-    await prefs.setString(_userKey, userJson);
+    await prefs.setString(StorageKeys.authUser, userJson);
   }
 
   // Obtener usuario guardado
   static Future<UserModel?> getSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString(_userKey);
+    final userJson = prefs.getString(StorageKeys.authUser);
     if (userJson != null) {
       return UserModel.fromJson(jsonDecode(userJson));
     }
     return null;
   }
-
 }
 
 /// Clase para la respuesta del login
@@ -176,10 +163,7 @@ class LoginResponse {
   final UserModel user;
   final String token;
 
-  const LoginResponse({
-    required this.user,
-    required this.token,
-  });
+  const LoginResponse({required this.user, required this.token});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
@@ -189,38 +173,6 @@ class LoginResponse {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'user': user.toJson(),
-      'token': token,
-    };
-  }
-}
-
-class ApiResponse<T> {
-  final bool success;
-  final T? data;
-  final String? message;
-  final int? statusCode;
-
-  const ApiResponse({
-    required this.success,
-    this.data,
-    this.message,
-    this.statusCode,
-  });
-
-  factory ApiResponse.success(T data) {
-    return ApiResponse(
-      success: true,
-      data: data,
-    );
-  }
-
-  factory ApiResponse.error(String message, [int? statusCode]) {
-    return ApiResponse(
-      success: false,
-      message: message,
-      statusCode: statusCode,
-    );
+    return {'user': user.toJson(), 'token': token};
   }
 }
