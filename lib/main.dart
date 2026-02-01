@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:real_world_provider/providers/auth_provider.dart';
+import 'package:real_world_provider/features/auth/providers/auth_provider.dart';
 import 'package:real_world_provider/providers/cart_provider.dart';
 import 'package:real_world_provider/providers/discount_provider.dart';
 import 'package:real_world_provider/providers/product_provider.dart';

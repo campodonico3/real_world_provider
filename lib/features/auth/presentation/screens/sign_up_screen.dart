@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:real_world_provider/screens/sign_in_screen.dart';
+import 'package:real_world_provider/features/auth/presentation/screens/sign_in_screen.dart';
 
 import '../widgets/input_field_widget.dart';
 import '../widgets/primary_button_widget.dart';
@@ -30,7 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _loading = false;
   bool _accepted = false;
 
-  String baseUrl = "http://192.168.0.102:3000/api/auth";
+  String baseUrl = "http://192.168.0.103:3000/api/auth";
 
   @override
   void dispose() {

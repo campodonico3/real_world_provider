@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:real_world_provider/core/router/routers.dart';
-import 'package:real_world_provider/providers/auth_provider.dart';
-import 'package:real_world_provider/screens/otp_screen.dart';
-import 'package:real_world_provider/screens/profile_screen.dart';
-import 'package:real_world_provider/screens/sign_in_screen.dart';
-import 'package:real_world_provider/screens/sign_up_screen.dart';
-import 'package:real_world_provider/screens/splash_screen.dart';
+import 'package:real_world_provider/features/auth/providers/auth_provider.dart';
+import 'package:real_world_provider/features/auth/presentation/screens/otp_screen.dart';
+import 'package:real_world_provider/features/profile/presentation/screens/profile_screen.dart';
+import 'package:real_world_provider/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:real_world_provider/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:real_world_provider/features/auth/presentation/screens/splash_screen.dart';
 
 import '../../layout/layout_scaffold.dart';
 import '../../screens/cart_screen.dart';
-import '../../screens/home_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
 import '../../screens/product_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');

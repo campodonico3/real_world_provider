@@ -19,6 +19,7 @@ dependencies:
   firebase_auth: ^6.1.0
   shared_preferences: ^2.5.3
   http: ^1.5.0
+  dio: ^5.4.3+1
   flutter_native_splash: ^2.4.6
 
 dev_dependencies:
@@ -44,4 +45,3 @@ flutter:
         - asset: assets/fonts/Unbounded-Medium.ttf
         - asset: assets/fonts/Unbounded-Regular.ttf
         - asset: assets/fonts/Unbounded-SemiBold.ttf
-

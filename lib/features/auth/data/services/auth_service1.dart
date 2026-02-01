@@ -6,7 +6,7 @@ import 'package:real_world_provider/core/api/api_endpoints.dart';
 import 'package:real_world_provider/core/constants/storage_keys.dart';
 import 'package:real_world_provider/core/utils/api_exception_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/api/api_response.dart';
+import '../../../../core/api/api_response.dart';
 import '../models/user_model.dart';
 
 class AuthService {

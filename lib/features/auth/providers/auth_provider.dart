@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import '../models/user_model.dart';
-import '../services/auth_service1.dart';
+import '../data/models/user_model.dart';
+import '../data/services/auth_service1.dart';
 
 enum AuthStatus {
   uninitialized,

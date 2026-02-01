@@ -9,11 +9,14 @@ class LayoutScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    extendBody: true,
     body: navigationShell,
-    bottomNavigationBar: CustomBottomNavbar(
-      selectedIndex: navigationShell.currentIndex, // 1
-      onTap: navigationShell.goBranch,
-      cartCount: 5, // Tiene que ser dinámico
+    bottomNavigationBar: SafeArea(
+      child: CustomBottomNavbar(
+        selectedIndex: navigationShell.currentIndex, // 1
+        onTap: navigationShell.goBranch,
+        cartCount: 5, // Tiene que ser dinámico
+      ),
     ),
   );
 }

@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:real_world_provider/widgets/input_field_widget.dart';
+import 'package:real_world_provider/features/auth/presentation/widgets/input_field_widget.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../core/router/routers.dart';
-import '../providers/auth_provider.dart';
+import '../../../../core/router/routers.dart';
+import '../../providers/auth_provider.dart';
 import '../widgets/primary_button_widget.dart';
 
 class SignInScreen extends StatefulWidget {
