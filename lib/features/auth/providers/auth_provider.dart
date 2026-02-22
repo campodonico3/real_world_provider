@@ -1,55 +1,83 @@
 import 'package:flutter/cupertino.dart';
+import 'package:real_world_provider/features/auth/data/repositories/auth_repository.dart';
+import 'package:real_world_provider/features/auth/data/services/auth_service.dart';
 
 import '../data/models/user_model.dart';
-import '../data/services/auth_service1.dart';
 
 enum AuthStatus {
+  /// Estado inicial (verificando sesión guardada)
   uninitialized,
+
+  /// Usuario autenticado correctamente
   authenticated,
+
+  /// Usuario no autenticado
   unauthenticated,
+
+  /// En proceso de autenticación (login/register)
   authenticating,
 }
 
 class AuthProvider with ChangeNotifier {
+  final AuthRepository _repository;
+
+  // Estados
   AuthStatus _status = AuthStatus.uninitialized;
   UserModel? _user;
   String? _token;
   String? _errorMessage;
 
-  // Getters
-  AuthStatus get status => _status;
-  UserModel? get user => _user;
-  String? get token => _token;
-  String? get errorMessage => _errorMessage;
-  bool get isAuthenticated => _status == AuthStatus.authenticated;
-  bool get isLoading => _status == AuthStatus.authenticating;
-
-  // Constructor - Verificar si hay sesión guardada
-  AuthProvider() {
+  // ==================== CONSTRUCTOR ====================
+  AuthProvider({AuthRepository? repository})
+    : _repository = repository ?? AuthRepository() {
     _checkAuthStatus();
   }
+
+  // ==================== GETTERS ====================
+  AuthStatus get status => _status;
+
+  UserModel? get user => _user;
+
+  String? get token => _token;
+
+  String? get errorMessage => _errorMessage;
+
+  bool get isAuthenticated => _status == AuthStatus.authenticated;
+
+  bool get isLoading => _status == AuthStatus.authenticating;
+
+  bool get isUninitialized => _status == AuthStatus.uninitialized;
+
+  // ==================== MÉTODOS DE AUTENTICACIÓN ====================
 
   // Verificar si hay una sesión activa guardada
   Future<void> _checkAuthStatus() async {
     try {
-      final savedToken = await AuthService.getToken();
+      debugPrint('🔍 Verificando estado de autenticación...');
+
+      final savedToken = await _repository.getToken();
 
       if (savedToken != null && savedToken.isNotEmpty) {
         _token = savedToken;
 
         // Cargar datos del usuario desde SharedPreferences
         final savedUser = await AuthService.getSavedUser();
+
         if (savedUser != null) {
           _user = savedUser;
           _status = AuthStatus.authenticated;
+          debugPrint('✅ Session restaurada: ${savedUser.email}');
         } else {
           // Si hay token pero no usuario, limpiar todo
-          await AuthService.logout();
+          await _repository.logout();
           _status = AuthStatus.unauthenticated;
+          debugPrint('⚠️ Token sin usauario, limpiando sesión');
         }
       } else {
         _status = AuthStatus.unauthenticated;
+        debugPrint('⚠️ No hay sesión guardada');
       }
+      notifyListeners();
     } catch (e) {
       debugPrint('Error checking auth status: $e');
       _status = AuthStatus.unauthenticated;
@@ -58,14 +86,13 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Login de usuario
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _setLoading();
 
     try {
-      final response = await AuthService.login(
+      debugPrint('🔐 Intentando login...');
+
+      final response = await _repository.login(
         email: email,
         password: password,
       );
@@ -73,12 +100,10 @@ class AuthProvider with ChangeNotifier {
       if (response.success && response.data != null) {
         _user = response.data!.user;
         _token = response.data!.token;
-
-        // Guardar usuario en SharedPrederences
-        await AuthService.saveUser(response.data!.user);
-
         _status = AuthStatus.authenticated;
         _errorMessage = null;
+
+        debugPrint('✅ Login exitoso: ${_user!.name}');
         notifyListeners();
         return true;
       } else {
@@ -86,6 +111,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
+      debugPrint('💥 Error inesperado en login: $e');
       _setError('Error de conexión: ${e.toString()}');
       return false;
     }
@@ -101,7 +127,9 @@ class AuthProvider with ChangeNotifier {
     _setLoading();
 
     try {
-      final response = await AuthService.register(
+      debugPrint('📝 Intentando registro...');
+
+      final response = await _repository.register(
         name: name,
         email: email,
         password: password,
@@ -111,12 +139,10 @@ class AuthProvider with ChangeNotifier {
       if (response.success && response.data != null) {
         _user = response.data!.user;
         _token = response.data!.token;
-
-        // Guardar usuario en SharedPreferences
-        await AuthService.saveUser(response.data!.user);
-
         _status = AuthStatus.authenticated;
         _errorMessage = null;
+
+        debugPrint('✅ Registro exitoso: ${_user!.name}');
         notifyListeners();
         return true;
       } else {
@@ -124,6 +150,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
+      debugPrint('💥 Error inesperado en registro: $e');
       _setError('Error de conexión: ${e.toString()}');
       return false;
     }
@@ -132,11 +159,16 @@ class AuthProvider with ChangeNotifier {
   /// Cerrar sesión
   Future<void> logout() async {
     try {
-      await AuthService.logout();
+      debugPrint('👋 Cerrando sesión...');
+
+      await _repository.logout();
       _clearUserData();
+
+      debugPrint('✅ Sesión cerrada correctamente');
     } catch (e) {
-      debugPrint('Error during logout: $e');
-      _clearUserData(); // Limpiar datos locales aunque falle
+      debugPrint('⚠️ Error durante logout: $e');
+      // Limpiar datos locales aunque falle la petición
+      _clearUserData();
     }
   }
 
@@ -144,7 +176,7 @@ class AuthProvider with ChangeNotifier {
   void updateUser(UserModel updatedUser) {
     _user = updatedUser;
     // Persistir cambios en SharedPreferences
-    AuthService.saveUser(updatedUser);
+    // AuthService.saveUser(updatedUser);
     notifyListeners();
   }
 
@@ -154,7 +186,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Métodos privados
+  // ==================== MÉTODOS PRIVADOS ====================
   void _setLoading() {
     _status = AuthStatus.authenticating;
     _errorMessage = null;

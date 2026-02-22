@@ -1,3 +1,4 @@
+/*
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -52,4 +53,4 @@ class RestaurantCategoryService {
       return ApiExceptionHandler.handleError(e);
     }
   }
-}
+}*/
